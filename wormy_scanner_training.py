@@ -406,8 +406,8 @@ def runGame(targetSize, trialNum, rewardVal,startingSides, maxTime, readySchedul
 
             # check if the worm has hit itself or the edge
             if wormCoords[HEAD]['x'] <= -1 or wormCoords[HEAD]['x'] >= CELLWIDTH or wormCoords[HEAD]['y'] <= -1 or wormCoords[HEAD]['y'] >= CELLHEIGHT:
-                showGameOverScreen('OUT OF BOUNDS')
                 moveOffset = pygame.time.get_ticks()
+                showGameOverScreen('OUT OF BOUNDS')
                 return OOB, startx, starty, appleCoords, side, curr_time - WAITTIME, \
                     speedPress, steerPress, rewardOnset, readyOnset, moveOnset, \
                     moveOffset# game over
@@ -416,14 +416,15 @@ def runGame(targetSize, trialNum, rewardVal,startingSides, maxTime, readySchedul
             for coord in appleCoords:
                 if wormCoords[HEAD]['x'] == coord['x'] and wormCoords[HEAD]['y'] == coord['y']:
                     if SPEED > SPEEDEND:
-                        showGameOverScreen('TOO FAST')
                         moveOffset = pygame.time.get_ticks()
+                        showGameOverScreen('TOO FAST')
+                        
                         return TOOFAST, startx, starty, appleCoords, side, \
                             curr_time-WAITTIME, speedPress, steerPress, rewardOnset, \
                             readyOnset, moveOnset, moveOffset
                     # send worm back to start
-                    showGameOverScreen('GOOD!!!')
-                    moveOffset = pygame.time.get_ticks()  
+                    moveOffset = pygame.time.get_ticks()
+                    showGameOverScreen('GOOD!!!')                    
                     return HIT, startx, starty, appleCoords, side, curr_time-WAITTIME, \
                         speedPress, steerPress, rewardOnset, readyOnset, \
                         moveOnset, moveOffset
@@ -547,14 +548,20 @@ def checkKeyPress(key, direction, SPEED):
 def makeApple(targetSize, side, wormLoc):
     apple = getRandomAppleLocation(side, targetSize) #getRandomLocation()
     #check to make sure the worm and the apple aren't straight across from each other
-    if side == LSIDE or side == RSIDE:
-        if 0 < (apple['y'] - wormLoc['y'] + targetSize) < targetSize: 
-            apple =getRandomAppleLocation(side,targetSize)
-        else: applecheck = False
-    elif side == TSIDE or side == BSIDE:
-        if (abs(wormLoc['x'] - apple['x'])) <= targetSize:
-            apple = getRandomAppleLocation(side, targetSize)
-        else: applecheck = False
+    applecheck = True
+    counter = 0
+    while applecheck and counter < 3:
+        if side == LSIDE or side == RSIDE:
+            print counter
+            print apple['y'] +targetSize - wormLoc['y']
+            if 0 < (apple['y'] - wormLoc['y'] + targetSize) < targetSize: 
+                apple =getRandomAppleLocation(side,targetSize)
+                counter +=1
+            else: applecheck = False
+        elif side == TSIDE or side == BSIDE:
+            if (abs(wormLoc['x'] - apple['x'])) <= targetSize:
+                apple = getRandomAppleLocation(side, targetSize)
+            else: applecheck = False
     
             
     appleCoords = []

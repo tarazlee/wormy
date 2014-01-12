@@ -233,6 +233,7 @@ def main():
     else:
         frame.to_csv('%s_reward.csv' % subject_number, sep= '\t') #write output
         print 'total accuracy: %03f' % np.mean(accuracy)
+        #tempFive = frame[frame.reward==40]
         print 'total money earned: $ %i' % frame[frame['accuracy']==1]['reward'].sum()
         randtrial = 1 + random.randint(0, len(trial_times))
         print 'trial number %i was chosen at random' % randtrial
@@ -336,8 +337,9 @@ def runGame(targetSize, trialNum, rewardVal,startingSides, maxTime, readySchedul
 
             # check if the worm has hit itself or the edge
             if wormCoords[HEAD]['x'] <= -1 or wormCoords[HEAD]['x'] >= CELLWIDTH or wormCoords[HEAD]['y'] <= -1 or wormCoords[HEAD]['y'] >= CELLHEIGHT:
-                showGameOverScreen('OUT OF BOUNDS')
+                
                 moveOffset = pygame.time.get_ticks()
+                showGameOverScreen('OUT OF BOUNDS')
                 
                 while True: # Make sure trial takes MAXTRIALTIME seconds total
                     curr_time = pygame.time.get_ticks() - startTime
@@ -351,17 +353,18 @@ def runGame(targetSize, trialNum, rewardVal,startingSides, maxTime, readySchedul
             for coord in appleCoords:
                 if wormCoords[HEAD]['x'] == coord['x'] and wormCoords[HEAD]['y'] == coord['y']:
                     if SPEED > SPEEDEND:
-                        showGameOverScreen('TOO FAST')
                         moveOffset = pygame.time.get_ticks()
+                        showGameOverScreen('TOO FAST')
                         while True: # Make sure trial takes MAXTRIALTIME seconds total
                             curr_time = pygame.time.get_ticks() - startTime
                             if curr_time > MAXTRIALTIME + readyDuration + WAITTIME: break
                         return TOOFAST, startx, starty, appleCoords, side, \
                             moveOffset-moveOnset, speedPress, steerPress, rewardOnset, \
                             readyOnset, moveOnset, moveOffset, trajectories
+                    
                     # send worm back to start
-                    showGameOverScreen('GOOD!!!')
-                    moveOffset = pygame.time.get_ticks()  
+                    moveOffset = pygame.time.get_ticks() 
+                    showGameOverScreen('GOOD!!!')                    
                     while True: # Make sure trial takes MAXTRIALTIME seconds total
                             curr_time = pygame.time.get_ticks() - startTime
                             if curr_time > MAXTRIALTIME +  readyDuration + WAITTIME: break

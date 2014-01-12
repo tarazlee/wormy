@@ -7,8 +7,9 @@ import pandas as pd
 import numpy as np
 from pandas import Series, DataFrame
 from pygame.locals import *
+from copy import copy, deepcopy
 
-NUM_PRAC_TRIALS = 320
+NUM_PRAC_TRIALS = 500
 BLOCKLENGTH = 10
 NUM_BLOCKS = NUM_PRAC_TRIALS / BLOCKLENGTH
 NUM_GAINLOSS_TRIALS = NUM_BLOCKS * 2
@@ -24,7 +25,7 @@ DARKGRAY  = ( 40,  40,  40)
 GOLD      = (255, 215,   0)
 
 
-COLOR_ONE= DARKGREEN
+COLOR_ONE= GREEN
 COLOR_TWO = RED
 GAIN_TRIAL = 999
 LOSS_TRIAL = -999
@@ -38,6 +39,12 @@ BSIDE = 1
 RSIDE = 2
 TSIDE = 3
 
+# DISTANCES (between apple and worm)
+CLOSE = 3
+MEDIUM = 2
+FAR = 1
+
+# BLOCK TYPES
 FIRST_COLOR_HARD = 0
 FIRST_COLOR_EASY = 1
 SECOND_COLOR_HARD = 2
@@ -48,12 +55,13 @@ HARD_TRIAL_LOW = 1
 EASY_TRIAL_HIGH = 2
 EASY_TRIAL_LOW = 3
 
-HIGH_REW = 20
-LOW_REW = 20
-TIME_RANGE = [25, 50, 75, 100] # in milliseconds to shift easy and hard trials
+HIGH_REW = 2
+LOW_REW = 0.25
+TIME_RANGE = [100, 200, 300, 400] # in milliseconds to shift easy and hard trials
 
 FIRST_BLOCK_TYPES = [FIRST_COLOR_HARD, FIRST_COLOR_EASY, SECOND_COLOR_HARD, SECOND_COLOR_EASY]
 TEST_TYPES = [HARD_TRIAL_HIGH, EASY_TRIAL_HIGH, HARD_TRIAL_LOW, EASY_TRIAL_LOW]
+MSEQ = np.load('m_seq_5^3_x6.npy')
 
 def main():
     difficultySchedule = []
@@ -62,6 +70,7 @@ def main():
     combined_types = []
     blockOrder = []
     timeSchedule = []
+    distanceSchedule = []
     subject_number = raw_input("Please enter subject number:")
     # fill in trial type (practice or gain/loss)
     for block in range(NUM_BLOCKS):
@@ -75,10 +84,13 @@ def main():
     for btind, block_type in enumerate(FIRST_BLOCK_TYPES):
         for ting, test in enumerate(TEST_TYPES):
             blockOrder.append([block_type, test])
+    random.shuffle(blockOrder)
     blockSchedule = blockOrder * (NUM_BLOCKS / (len(FIRST_BLOCK_TYPES)*len(TEST_TYPES))) # make entire block schedule by repeating blocks
     #random.shuffle(blockSchedule) # randomize block order completely
     colorSchedule, difficultySchedule = setColorDiffSchedule(blockSchedule)
     rewardSchedule = setRewardSchedule(blockSchedule)
+    distanceSchedule = setDistanceSchedule(blockSchedule)
+    actDiffSchedule = deepcopy(difficultySchedule)
     
     # make medium difficulty trials
     for dind, difficulty in enumerate(difficultySchedule):
@@ -88,7 +100,8 @@ def main():
             difficultySchedule[dind] =MEDIUM_TRIAL
     timeSchedule = setTimeSchedule(difficultySchedule)
     data = {'gainLossSchedule':gainLossSchedule, 'difficultySchedule': difficultySchedule, \
-            'colorSchedule': colorSchedule, 'rewardSchedule': rewardSchedule, 'timeSchedule': timeSchedule \
+            'colorSchedule': colorSchedule, 'rewardSchedule': rewardSchedule, 'timeSchedule': timeSchedule, \
+            'distanceSchedule': distanceSchedule, 'perceivedDiff': actDiffSchedule
             }
     frame = DataFrame(data)
     frame.to_csv('%s_wormy_shiva_trial_order.csv' % subject_number, sep= '\t')
@@ -163,7 +176,18 @@ def setColorDiffSchedule(blockSchedule):
                 difficultySchedule.extend([EASY_TRIAL]*2)
                
     return colorSchedule, difficultySchedule
-    
+   
+def setDistanceSchedule(blockSchedule):
+    distanceSchedule = []
+    for bind,bt in enumerate(blockSchedule):
+        
+        for i in range(BLOCKLENGTH):
+            dist = random.choice([CLOSE, MEDIUM, FAR])
+            distanceSchedule.append(dist)
+        # for gain and loss trials
+        distanceSchedule.extend([MEDIUM]*2)
+        
+    return distanceSchedule
 def setRewardSchedule(blockSchedule):
     rewardSchedule = []
     for bind,bt in enumerate(blockSchedule):

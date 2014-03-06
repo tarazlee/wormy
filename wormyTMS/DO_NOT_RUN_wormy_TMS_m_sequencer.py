@@ -1,0 +1,39 @@
+# Create jitters from M sequence
+
+import numpy as np
+import collections as coll
+import random
+
+M_FILE = 'm_seq_3^4x2_even.npy'
+
+x = np.load(M_FILE)
+shifter = coll.deque(x)
+random_shift = random.randint(0, len(x))
+shifter.rotate(random_shift)
+
+
+
+y = []
+jitterMult = 2000
+readyMult = 1000
+jitters = []
+readytimes = []
+
+# adjust m-sequence to be positive integers
+for ind,i in enumerate(x):
+    y.append( shifter[ind]+2)
+    print (shifter[ind])
+    print (shifter[ind] + 3)
+
+for jind, j in enumerate(y):
+    jitters.append(j*jitterMult)
+
+y_deque = coll.deque(y)
+random_shift = random.randint(0, len(x))
+y_deque.rotate(random_shift)
+
+for kind, k in enumerate(y_deque):
+    readytimes.append(k*readyMult)
+    
+np.save('TMS_jitters.npy', jitters)
+np.save('TMS_readytimes.npy', readytimes)
